@@ -172,7 +172,7 @@ void launch::do_full_launch(const launch_info_t& launch_info, std::atomic<int>* 
 	}
 
 	// Create our libcurl handle
-	if (dllSet)
+	if (!dllSet)
 	{
 		curl_handle = curl_easy_init();
 
