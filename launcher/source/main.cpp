@@ -28,11 +28,73 @@
 constexpr int window_x = 720;
 constexpr int window_y = 320;
 
+static bool dragging;
+static double globalMouseXOffset;
+static double globalMouseYOffset;
+
+static bool cursorInTitleBar(GLFWwindow* window, double cursorX, double cursorY) {
+	/*
+	int windowX, windowY;
+	glfwGetWindowPos(window, &windowX, &windowY);
+
+	return cursorX >= windowX && cursorX <= windowX + window_x && cursorY >= windowY && cursorY <= windowY + 21;
+	*/
+
+	return cursorX >= 0 && cursorX <= window_x && cursorY >= 0 && cursorY <= 21;
+}
+
+static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+	if (button != GLFW_MOUSE_BUTTON_LEFT)
+		return;
+
+	double mouseX, mouseY;
+	glfwGetCursorPos(window, &mouseX, &mouseY);
+
+	if (action == GLFW_PRESS && cursorInTitleBar(window, mouseX, mouseY))
+	{
+		dragging = true;
+
+		int windowX, windowY;
+		glfwGetWindowPos(window, &windowX, &windowY);
+
+		globalMouseXOffset = mouseX + windowX;
+		globalMouseYOffset = mouseY + windowY;
+	}
+	else if (action == GLFW_RELEASE)
+	{
+		dragging = false;
+	}
+}
+
+static void cursor_pos_callback(GLFWwindow* window, double xPos, double yPos) {
+	if (!dragging)
+		return;
+
+	int windowX, windowY;
+	glfwGetWindowPos(window, &windowX, &windowY);
+
+	double deltaX = xPos + windowX - globalMouseXOffset;
+	double deltaY = yPos + windowY - globalMouseYOffset;
+
+	printf("%fx", deltaX);
+	printf("%f\n", deltaY);
+
+	int oldPosX, oldPosY;
+	glfwGetWindowPos(window, &oldPosX, &oldPosY);
+
+	glfwSetWindowPos(window, oldPosX + deltaX, oldPosY + deltaY);
+
+	globalMouseXOffset = xPos + windowX;
+	globalMouseYOffset = yPos + windowY;
+}
+
 int main()
 {
 	// Create the window
 	if (!glfwInit())
 		return 1;
+
+	glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 
 	printf("[~] GLFW initialized successfully\n");
 
@@ -86,6 +148,9 @@ int main()
 	// Initialize the menu
 	CMenu::get_instance()->init(ui_window);
 	CMenu::get_instance()->set_style(ui_window);
+
+	glfwSetMouseButtonCallback(ui_window, mouse_button_callback);
+	glfwSetCursorPosCallback(ui_window, cursor_pos_callback);
 
 	printf("[~] Entering main loop\n");
 
