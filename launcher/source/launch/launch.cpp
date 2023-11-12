@@ -140,7 +140,7 @@ HANDLE launch::create_process(const std::filesystem::path& process_path, const s
 	return process_info.hProcess;
 }
 
-void launch::do_full_launch(const launch_info_t& launch_info, std::atomic<int>* progress_out)
+void launch::do_full_launch(const launch_info_t& launch_info, std::atomic<int>* progress_out, std::filesystem::path dll_filepath)
 {
 	// Yes, I'm breaking my naming scheme, but it's WinAPI stuff
 	// ... so it doesn't count, right?
@@ -162,16 +162,28 @@ void launch::do_full_launch(const launch_info_t& launch_info, std::atomic<int>* 
 	bool is_target_x64 = false;
 	wchar_t temp_file_path[MAX_PATH] = { 0 };
 
-	// Create our libcurl handle
-	curl_handle = curl_easy_init();
+	bool dllSet = !dll_filepath.empty();
+	bool dllExists = std::filesystem::exists(dll_filepath);
 
-	printf("[inject] Got cURL handle %p\n", curl_handle);
-
-	// ... and make sure it's valid
-	if (!curl_handle)
+	if (dllSet && !dllExists)
 	{
-		MessageBoxA(0, "Failed to acquire cURL handle.", "cURL error", mb_flags);
+		MessageBoxA(0, "Requested DLL does not exist.", "Injection error", mb_flags);
 		goto thread_cleanup;
+	}
+
+	// Create our libcurl handle
+	if (dllSet)
+	{
+		curl_handle = curl_easy_init();
+
+		printf("[inject] Got cURL handle %p\n", curl_handle);
+
+		// ... and make sure it's valid
+		if (!curl_handle)
+		{
+			MessageBoxA(0, "Failed to acquire cURL handle.", "cURL error", mb_flags);
+			goto thread_cleanup;
+		}
 	}
 
 	// Find NTDLL.dll
@@ -199,51 +211,54 @@ void launch::do_full_launch(const launch_info_t& launch_info, std::atomic<int>* 
 	}
 
 	// --- FETCHING RELEASES ---
-	progress_out->store(1);
-
-	printf("[inject] Fetching releases (stage 1)\n");
-
-	network::fetch_releases(curl_handle, "Archie-osu", "YYToolkit", yytk_versions);
-
-	// Failed to fetch?
-	if (yytk_versions.empty())
+	if (!dllSet)
 	{
-		int selection = MessageBoxA(
-			0,
-			"Failed to fetch releases.\n"
-			"Do you want to use a locally-stored DLL?",
-			"cURL error",
-			MB_YESNO | MB_SETFOREGROUND | MB_TOPMOST | MB_ICONWARNING
-		);
+		progress_out->store(1);
 
-		if (selection == IDYES)
+		printf("[inject] Fetching releases (stage 1)\n");
+
+		network::fetch_releases(curl_handle, "Archie-osu", "YYToolkit", yytk_versions);
+
+		// Failed to fetch?
+		if (yytk_versions.empty())
 		{
-			curl_easy_cleanup(curl_handle);
+			int selection = MessageBoxA(
+				0,
+				"Failed to fetch releases.\n"
+				"Do you want to use a locally-stored DLL?",
+				"cURL error",
+				MB_YESNO | MB_SETFOREGROUND | MB_TOPMOST | MB_ICONWARNING
+			);
 
-			return do_full_launch_offline(launch_info, progress_out);
+			if (selection == IDYES)
+			{
+				curl_easy_cleanup(curl_handle);
+
+				return do_full_launch_offline(launch_info, progress_out);
+			}
+
+			goto thread_cleanup;
 		}
 
-		goto thread_cleanup;
-	}
+		// Select a release to use
+		// The first release in the vector is the most up-to-date one
+		selected_release = yytk_versions.front();
 
-	// Select a release to use
-	// The first release in the vector is the most up-to-date one
-	selected_release = yytk_versions.front();
+		// Check if we have an override, if so, use that
+		if (!launch_info.forced_tagname.empty())
+		{
+			auto selected_release_iterator = std::find_if(
+				std::begin(yytk_versions),
+				std::end(yytk_versions),
+				[launch_info](const release_t& val) -> bool
+				{
+					return val.tag_name == launch_info.forced_tagname;
+				}
+			);
 
-	// Check if we have an override, if so, use that
-	if (!launch_info.forced_tagname.empty())
-	{
-		auto selected_release_iterator = std::find_if(
-			std::begin(yytk_versions),
-			std::end(yytk_versions),
-			[launch_info](const release_t& val) -> bool
-			{
-				return val.tag_name == launch_info.forced_tagname;
-			}
-		);
-
-		if (selected_release_iterator != std::end(yytk_versions))
-			selected_release = *selected_release_iterator;
+			if (selected_release_iterator != std::end(yytk_versions))
+				selected_release = *selected_release_iterator;
+		}
 	}
 
 	// --- PREPARING ENVIRONMENT ---
@@ -269,7 +284,7 @@ void launch::do_full_launch(const launch_info_t& launch_info, std::atomic<int>* 
 	printf("[inject] is_target_x64 returns %d\n", is_target_x64);
 
 	// Make sure the current release supports the architecture
-	if (is_target_x64 && selected_release.assets.download_url_x64.empty())
+	if (!dllSet && is_target_x64 && selected_release.assets.download_url_x64.empty())
 	{
 		int selection = MessageBoxA(
 			0, 
@@ -305,40 +320,43 @@ void launch::do_full_launch(const launch_info_t& launch_info, std::atomic<int>* 
 
 	printf("[inject] Downloading data (stage 3)\n");
 
-	if (is_target_x64)
+	if (!dllSet)
 	{
-		CURLcode curl_result = network::download_file(
-			curl_handle, 
-			selected_release.assets.download_url_x64, 
-			temp_file_path
-		);
-
-		if (curl_result)
+		if (is_target_x64)
 		{
-			MessageBoxA(0, "Failed to download YYToolkit.", "cURL error", mb_flags);
+			CURLcode curl_result = network::download_file(
+				curl_handle,
+				selected_release.assets.download_url_x64,
+				temp_file_path
+			);
 
-			// Make sure we don't leave a suspended process running in the background
-			TerminateProcess(target_process, 0);
+			if (curl_result)
+			{
+				MessageBoxA(0, "Failed to download YYToolkit.", "cURL error", mb_flags);
 
-			goto thread_cleanup;
+				// Make sure we don't leave a suspended process running in the background
+				TerminateProcess(target_process, 0);
+
+				goto thread_cleanup;
+			}
 		}
-	}
-	else
-	{
-		CURLcode curl_result = network::download_file(
-			curl_handle,
-			selected_release.assets.download_url_x86,
-			temp_file_path
-		);
-
-		if (curl_result)
+		else
 		{
-			MessageBoxA(0, "Failed to download YYToolkit.", "cURL error", mb_flags);
+			CURLcode curl_result = network::download_file(
+				curl_handle,
+				selected_release.assets.download_url_x86,
+				temp_file_path
+			);
 
-			// Make sure we don't leave a suspended process running in the background
-			TerminateProcess(target_process, 0);
+			if (curl_result)
+			{
+				MessageBoxA(0, "Failed to download YYToolkit.", "cURL error", mb_flags);
 
-			goto thread_cleanup;
+				// Make sure we don't leave a suspended process running in the background
+				TerminateProcess(target_process, 0);
+
+				goto thread_cleanup;
+			}
 		}
 	}
 
@@ -405,7 +423,7 @@ void launch::do_full_launch(const launch_info_t& launch_info, std::atomic<int>* 
 
 	printf("[inject] Injecting (stage 5)\n");
 
-	if (!inject::inject(target_process, temp_file_path))
+	if (!inject::inject(target_process, dllSet ? dll_filepath : temp_file_path))
 	{
 		MessageBoxA(0, "Injection failed.", "Framework error", mb_flags);
 

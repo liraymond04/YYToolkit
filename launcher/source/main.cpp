@@ -24,6 +24,7 @@
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 #include "menu/menu.hpp"
+#include <ImGui/imgui.h>
 
 constexpr int window_x = 720;
 constexpr int window_y = 320;
@@ -44,6 +45,11 @@ static bool cursorInTitleBar(GLFWwindow* window, double cursorX, double cursorY)
 }
 
 static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+	if (action == GLFW_PRESS && button >= 0 && button < 3)
+		ImGui::GetIO().MouseDown[button] = true;
+	else if (action == GLFW_RELEASE && button >= 0 && button < 3)
+		ImGui::GetIO().MouseDown[button] = false;
+
 	if (button != GLFW_MOUSE_BUTTON_LEFT)
 		return;
 
@@ -67,6 +73,8 @@ static void mouse_button_callback(GLFWwindow* window, int button, int action, in
 }
 
 static void cursor_pos_callback(GLFWwindow* window, double xPos, double yPos) {
+	ImGui::GetIO().MousePos = ImVec2(xPos, yPos);
+
 	if (!dragging)
 		return;
 

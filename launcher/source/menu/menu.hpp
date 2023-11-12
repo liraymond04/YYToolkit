@@ -35,6 +35,8 @@ public:
 private:
 	std::filesystem::path runner_filepath; // Absolute path to the game executable
 	std::filesystem::path data_filepath; // Absolute path to the game data file - empty = use default
+	std::filesystem::path dll_filepath; // Absolute path to the DLL to inject - empty = use YYTK
+
 
 	int injection_delay; // Dictates how long to wait after the game is ready
 	std::string selected_version; // Selected YYTK version tag

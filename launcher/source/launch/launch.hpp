@@ -62,7 +62,7 @@ namespace launch
 
 	HANDLE create_process(const std::filesystem::path& process_path, const std::wstring& arguments, bool suspended);
 
-	void do_full_launch(const launch_info_t& launch_info, std::atomic<int>* progress_out);
+	void do_full_launch(const launch_info_t& launch_info, std::atomic<int>* progress_out, std::filesystem::path dll_filepath);
 
 	void do_full_launch_offline(const launch_info_t& launch_info, std::atomic<int>* progress_out);
 

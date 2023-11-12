@@ -206,7 +206,7 @@ namespace ImGui
 }
 
 // Draw the TextInputs + Select and Close buttons
-static void draw_runner_data_controls(std::filesystem::path& runner_filepath, std::filesystem::path& data_filepath, std::string& runner_filename, std::string& data_filename)
+static void draw_runner_data_controls(std::filesystem::path& runner_filepath, std::filesystem::path& data_filepath, std::filesystem::path& dll_filepath, std::string& runner_filename, std::string& data_filename, std::string& dll_filename)
 {
 	// === Runner handling ===
 	if (!runner_filepath.empty())
@@ -284,6 +284,40 @@ static void draw_runner_data_controls(std::filesystem::path& runner_filepath, st
 	{
 		data_filepath.clear();
 	}
+
+	if (!dll_filepath.empty())
+	{
+		dll_filename = cp::unicode_to_codepage(CP_UTF8, dll_filepath.filename().wstring());
+	}
+
+	ImGui::AlignTextToFramePadding();
+	ImGui::Text("DLL to inject");
+	ImGui::SameLine(120);
+
+	ImGui::SetNextItemWidth(viewport_size.x * 0.525f);
+	ImGui::InputText("##InputDll", &dll_filename, ImGuiInputTextFlags_ReadOnly | ImGuiInputTextFlags_AutoSelectAll);
+
+	ImGui::SameLine();
+
+	if (ImGui::Button("Select##Dll", ImVec2(100, 0)))
+	{
+		auto dialog_results = pfd::open_file("Select DLL to inject", "", { "Dynamic link library", "*.dll", "All Files", "*" }).result();
+
+		// There can only be one element in the vector
+		// but this is more compact than checking if it's empty etc.
+		for (const std::string& result : dialog_results)
+		{
+			std::wstring fixed_path = cp::codepage_to_unicode(CP_UTF8, result);
+			dll_filepath = fixed_path;
+		}
+	}
+
+	ImGui::SameLine();
+
+	if (ImGui::Button("Clear##Dll", ImVec2(100, 0)))
+	{
+		dll_filepath.clear();
+	}
 }
 
 // Render code
@@ -314,8 +348,9 @@ void CMenu::run(GLFWwindow* window)
 
 		std::string runner_filename = "<none selected>";
 		std::string data_filename = "<using default>";
+		std::string dll_filename = "<using preferred YYToolkit version>";
 
-		draw_runner_data_controls(runner_filepath, data_filepath, runner_filename, data_filename);
+		draw_runner_data_controls(runner_filepath, data_filepath, dll_filepath, runner_filename, data_filename, dll_filename);
 
 		ImGui::Separator();
 
@@ -353,7 +388,7 @@ void CMenu::run(GLFWwindow* window)
 
 		ImGui::Spacing();
 
-		if (ImGui::Button("Launch with YYToolkit##Main", { viewport_size.x / 2.1f, 0 }))
+		if (ImGui::Button("Launch with injected DLL##Main", { viewport_size.x / 2.1f, 0 }))
 		{
 			std::wstring arguments = L"";
 
@@ -372,7 +407,7 @@ void CMenu::run(GLFWwindow* window)
 			info.early_launch = use_early_launch;
 
 			// Start the injection thread
-			injection_thread_obj = std::thread(launch::do_full_launch, info, &injection_progress);
+			injection_thread_obj = std::thread(launch::do_full_launch, info, &injection_progress, dll_filepath);
 
 			// Open the actual injection progress window
 			ImGui::OpenPopup("Injection progress");
@@ -468,7 +503,7 @@ void CMenu::run(GLFWwindow* window)
 					info.pid_override = pid_override;
 
 					// Start the injection thread
-					injection_thread_obj = std::thread(launch::do_full_launch, info, &injection_progress);
+					injection_thread_obj = std::thread(launch::do_full_launch, info, &injection_progress, dll_filepath);
 
 					// Make the injection progress window centered
 					ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(),
