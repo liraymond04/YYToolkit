@@ -25,6 +25,7 @@ public:
 	void run(GLFWwindow* window);
 	void destroy(GLFWwindow* window);
 	void set_style(GLFWwindow* window);
+	void setup_deep_dark_style();
 
 	CMenu(const CMenu&) = delete;
 	void operator=(const CMenu&) = delete;

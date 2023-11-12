@@ -95,6 +95,7 @@ int main()
 		return 1;
 
 	glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+	glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
 
 	printf("[~] GLFW initialized successfully\n");
 
