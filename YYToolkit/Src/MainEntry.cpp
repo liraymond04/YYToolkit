@@ -51,7 +51,7 @@ void __stdcall Main(HINSTANCE g_hDLL)
 
 	if (!steamApi)
 	{
-		Utils::Logging::Message(CLR_GRAY, "Failed to load Steam API, assuming not present.");
+		Utils::Logging::Message(CLR_GRAY, "Failed to load Steam API, assuming not present or non-Steam game.");
 	}
 	else
 	{
