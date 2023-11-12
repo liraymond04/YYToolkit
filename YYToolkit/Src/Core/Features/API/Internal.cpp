@@ -339,7 +339,7 @@ YYTKStatus API::Internal::MmFindCodeFunction(uintptr_t& dwOutBuffer)
 		return holy_shit_pattern;
 	}
 
-	the_functions_array = (RFunction**)(holy_shit_result + 7ULL + *(int32_t*)(holy_shit_result + 3));
+	the_functions_array = (RFunctions*)(holy_shit_result + 7ULL + *(int32_t*)(holy_shit_result + 3));
 	dwOutBuffer = (uintptr_t)dummy_find_function;
 	return YYTK_OK;
 #else
