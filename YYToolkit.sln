@@ -13,20 +13,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Launcher", "YYLauncher\Laun
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Chapter2_EnableDebug", "Plugins\Chapter2_EnableDebug\Chapter2_EnableDebug.vcxproj", "{E690ECB4-BEE5-4E41-ABB1-EA4363E18374}"
 EndProject
-Project("{911E67C6-3D85-4FCE-B560-20A9C3E3FF48}") = "Risk of Rain Returns", "..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Risk of Rain Returns\Risk of Rain Returns.exe", "{9D36D546-B356-4372-B96B-3A1D539AF285}"
-	ProjectSection(DebuggerProjectSystem) = preProject
-		PortSupplier = 00000000-0000-0000-0000-000000000000
-		Executable = C:\Program Files (x86)\Steam\steamapps\common\Risk of Rain Returns\Risk of Rain Returns.exe
-		RemoteMachine = DESKTOP-QDVKBTH
-		StartingDirectory = C:\Program Files (x86)\Steam\steamapps\common\Risk of Rain Returns
-		Environment = Default
-		LaunchingEngine = 00000000-0000-0000-0000-000000000000
-		UseLegacyDebugEngines = No
-		LaunchSQLEngine = No
-		AttachLaunchAction = No
-		IORedirection = Auto
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -91,12 +77,6 @@ Global
 		{E690ECB4-BEE5-4E41-ABB1-EA4363E18374}.Release|x64.Build.0 = Release|x64
 		{E690ECB4-BEE5-4E41-ABB1-EA4363E18374}.Release|x86.ActiveCfg = Release|Win32
 		{E690ECB4-BEE5-4E41-ABB1-EA4363E18374}.Release|x86.Build.0 = Release|Win32
-		{9D36D546-B356-4372-B96B-3A1D539AF285}.Debug|Any CPU.ActiveCfg = Release|x64
-		{9D36D546-B356-4372-B96B-3A1D539AF285}.Debug|x64.ActiveCfg = Release|x64
-		{9D36D546-B356-4372-B96B-3A1D539AF285}.Debug|x86.ActiveCfg = Release|x64
-		{9D36D546-B356-4372-B96B-3A1D539AF285}.Release|Any CPU.ActiveCfg = Release|x64
-		{9D36D546-B356-4372-B96B-3A1D539AF285}.Release|x64.ActiveCfg = Release|x64
-		{9D36D546-B356-4372-B96B-3A1D539AF285}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
