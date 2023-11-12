@@ -593,12 +593,11 @@ void CMenu::run(GLFWwindow* window)
 		}
 		ImGui::PopStyleVar();
 
-		// float yPos = ImGui::GetCursorPosY();
 		float yMax = ImGui::GetContentRegionMax().y;
 		float yText = ImGui::CalcTextSize("").y;
 		ImGui::SetCursorPosY(yMax - yText);
 
-		ImGui::Text("hi im tomat");
+		ImGui::Text("awesome tomat fork by tomat");
 
 		// Return our cursor's YPos to be just after the first separator
 		ImGui::SetCursorPosX(viewport_size.x * 0.5f);
