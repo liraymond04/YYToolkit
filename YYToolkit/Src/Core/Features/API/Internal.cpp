@@ -290,23 +290,25 @@ YYTKStatus API::Internal::MmFindCodeExecute(uintptr_t& dwOutBuffer)
 
 struct RFunction
 {
-	union {
-		unsigned char padding[64];
-		char* name;
-	};
-
+	char* name;
 	void* function;
 	int32_t argc;
-	int32_t padding2;
 };
 
-static RFunction** the_functions_array = nullptr;
+struct RFunctions
+{
+	RFunction* ptr;
+	int32_t length;
+	int32_t max_length;
+};
+
+static RFunctions* the_functions_array = nullptr;
 
 static void dummy_find_function(int id, char** bufName, void** bufRoutine, int* bufArgs, void* unused)
 {
-	*bufName = (char*)(&(*the_functions_array)[id].name);
-	*bufRoutine = (*the_functions_array)[id].function;
-	*bufArgs = (*the_functions_array)[id].argc;
+	*bufName = the_functions_array->ptr[id].name;
+	*bufRoutine = the_functions_array->ptr[id].function;
+	*bufArgs = the_functions_array->ptr[id].argc;
 }
 
 YYTKStatus API::Internal::MmFindCodeFunction(uintptr_t& dwOutBuffer)
