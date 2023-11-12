@@ -122,9 +122,9 @@ YYTKStatus API::Internal::__InitializeConsole__()
 
 
 #if _DEBUG
-	Utils::Logging::Message(CLR_GOLD, "YYToolkit %s (Debug) by @archie_uwu", YYSDK_VERSION);
+	Utils::Logging::Message(CLR_GOLD, "YYToolkit %s (Debug) by @archie_uwu, fork by @tomat", YYSDK_VERSION);
 #else
-	Utils::Logging::Message(CLR_LIGHTBLUE, "YYToolkit by @archie_uwu", YYSDK_VERSION);
+	Utils::Logging::Message(CLR_LIGHTBLUE, "YYToolkit by @archie_uwu, fork by @tomat", YYSDK_VERSION);
 #endif
 
 	return YYTK_OK;
