@@ -41,6 +41,49 @@ void __stdcall Main(HINSTANCE g_hDLL)
 	// Open the console, write the version number
 	Internal::__InitializeConsole__();
 
+	Utils::Logging::Message(CLR_GRAY, "Attempting to load Steam...");
+	HMODULE steamApi = LoadLibraryA("steam_api64.dll");
+
+	if (!steamApi)
+	{
+		steamApi = LoadLibraryA("steam_api.dll");
+	}
+
+	if (!steamApi)
+	{
+		Utils::Logging::Message(CLR_GRAY, "Failed to load Steam API, assuming not present.");
+	}
+	else
+	{
+		typedef bool (*SteamAPI_Init_t)();
+		typedef bool (*SteamAPI_IsStreamRunning_t)();
+
+		SteamAPI_Init_t init = (SteamAPI_Init_t)GetProcAddress(steamApi, "SteamAPI_Init");
+		SteamAPI_IsStreamRunning_t isSteamRunning = (SteamAPI_IsStreamRunning_t)GetProcAddress(steamApi, "SteamAPI_IsSteamRunning");
+
+		if (!init || !isSteamRunning)
+		{
+			Utils::Logging::Message(CLR_YELLOW, "Failed to resolve SteamAPI functions!");
+		}
+		else
+		{
+			if (!init())
+			{
+				Utils::Logging::Message(CLR_YELLOW, "Failed to initialize Steam API!");
+			}
+			else if (!isSteamRunning())
+			{
+				// The game will restart. Let's wait for that.
+				Utils::Logging::Message(CLR_BLUE, "Game will be relaunched under Steam, suspending execution...");
+				return;
+			}
+			else
+			{
+				Utils::Logging::Message(CLR_GRAY, "Running under Steam!");
+			}
+		}
+	}
+
 	// Map all the auto-executed plugins to memory, don't run any functions though
 	PluginManager::Initialize();
 
