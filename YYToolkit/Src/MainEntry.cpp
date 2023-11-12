@@ -4,7 +4,6 @@
 #include "Core/Utils/Logging/Logging.hpp"
 #include "Core/Utils/WinAPI/WinAPI.hpp"
 #include "Core/Hooks/Hooks.hpp"
-#include <Dbghelp.h>
 #if _WIN64
 //#error Don't compile in x64! // What if I do anyway
 #endif
