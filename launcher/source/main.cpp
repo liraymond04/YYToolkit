@@ -34,13 +34,6 @@ static double globalMouseXOffset;
 static double globalMouseYOffset;
 
 static bool cursorInTitleBar(GLFWwindow* window, double cursorX, double cursorY) {
-	/*
-	int windowX, windowY;
-	glfwGetWindowPos(window, &windowX, &windowY);
-
-	return cursorX >= windowX && cursorX <= windowX + window_x && cursorY >= windowY && cursorY <= windowY + 21;
-	*/
-
 	return cursorX >= 0 && cursorX <= window_x && cursorY >= 0 && cursorY <= 21;
 }
 
@@ -83,9 +76,6 @@ static void cursor_pos_callback(GLFWwindow* window, double xPos, double yPos) {
 
 	double deltaX = xPos + windowX - globalMouseXOffset;
 	double deltaY = yPos + windowY - globalMouseYOffset;
-
-	printf("%fx", deltaX);
-	printf("%f\n", deltaY);
 
 	int oldPosX, oldPosY;
 	glfwGetWindowPos(window, &oldPosX, &oldPosY);
