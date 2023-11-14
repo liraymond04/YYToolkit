@@ -117,30 +117,13 @@ HANDLE launch::create_process(const std::filesystem::path& process_path, const s
 
 	PROCESS_INFORMATION process_info = { 0 };
 
-	std::wstring temp = process_path.wstring();
-
-	std::wstring path = L"";
-	if (command_line.substr(1, 3) == L"Z:\\")
+	for (int i = 0; i < command_line.size(); i++)
 	{
-		int last = 0;
-		for (int i = 1; i < temp.size(); i++)
+		if (command_line[i] == '\0')
 		{
-			if (temp[i] == L'\\')
-			{
-				temp.erase(i, 1);
-				path += L"/";
-				path += temp.substr(last, i - last);
-				last = i;
-			}
+			command_line.erase(i, 1);
 		}
-		path += L"/";
-		path += temp.substr(last, temp.size() - last);
-		path.erase(1, 3);
-
-		command_line = path;
 	}
-
-	std::wcout << "[create process] Open executable: " << command_line << std::endl;
 
 	bool process_created = CreateProcessW(
 		nullptr,
